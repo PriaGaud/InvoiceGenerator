@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .invoice-form, .invoice-display {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-group input[type="number"] {
+            width: 120px;
+        }
+
+        .form-group input[type="button"] {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            width: 120px;
+        }
+
+        .form-group input[type="button"]:hover {
+            background-color: #218838;
+            
+        }
+
+        .item-list {
+            margin-top: 20px;
+        }
+
+        .item-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .item-list table th, .item-list table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .item-list table th {
+            background-color: #f8f9fa;
+        }
+
+        .total {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        .invoice-display {
+            display: none;
+        }
+
+        .invoice-display h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .invoice-display .details, .invoice-display .items, .invoice-display .totals {
+            margin-bottom: 20px;
+        }
+
+        .invoice-display .totals {
+            text-align: right;
+        }
+
+        .invoice-display .totals p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Invoice Generator</h1>
+
+    <div class="invoice-form">
+        <div class="form-group">
+            <label for="clientName">Client Name:</label>
+            <input type="text" id="clientName" placeholder="Enter client name">
+        </div>
+
+        <div class="form-group">
+            <label for="clientEmail">Client Email:</label>
+            <input type="email" id="clientEmail" placeholder="Enter client email">
+        </div>
+
+        <div class="form-group">
+            <label for="invoiceDate">Invoice Date:</label>
+            <input type="date" id="invoiceDate">
+        </div>
+
+        <div class="form-group">
+            <label for="itemDescription">Item Description:</label>
+            <input type="text" id="itemDescription" placeholder="Enter item description">
+        </div>
+
+        <div class="form-group">
+            <label for="itemQuantity">Quantity:</label>
+            <input type="number" id="itemQuantity" placeholder="Enter quantity" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="itemPrice">Price per Unit:</label>
+            <input type="number" id="itemPrice" placeholder="Enter price per unit" min="0.01" step="0.01">
+        </div>
+
+        <div class="form-group">
+            <label for="taxRate">Tax Rate (%):</label>
+            <input type="number" id="taxRate" placeholder="Enter tax rate" min="0" step="0.01">
+        </div>
+
+        <div class="form-group">
+            <label for="discountAmount">Discount Amount ($):</label>
+            <input type="number" id="discountAmount" placeholder="Enter discount amount" min="0" step="0.01">
+        </div>
+
+        <div class="form-group">
+            <input type="button" id="addItem" value="Add Item">
+        </div>
+
+        <div class="item-list">
+            <h2>Items</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="total">
+            <strong>Subtotal: $<span id="invoiceSubtotal">0.00</span></strong>
+            <br>
+            <strong>Tax: $<span id="invoiceTax">0.00</span></strong>
+            <br>
+            <strong>Discount: -$<span id="invoiceDiscount">0.00</span></strong>
+            <br>
+            <strong>Total: $<span id="invoiceTotal">0.00</span></strong>
+        </div>
+
+        <div class="form-group">
+            <input type="button" id="generateInvoice" value="Generate Invoice">
+            <input type="button" id="downloadPdf" value="Download PDF">
+        </div>
+    </div>
+
+    <div class="invoice-display" id="invoiceDisplay">
+        <h2>Invoice</h2>
+        <div class="details">
+            <p><strong>Client Name:</strong> <span id="displayClientName"></span></p>
+            <p><strong>Client Email:</strong> <span id="displayClientEmail"></span></p>
+            <p><strong>Date:</strong> <span id="displayInvoiceDate"></span></p>
+        </div>
+
+        <div class="items">
+            <h3>Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="displayItemsTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <p><strong>Subtotal: $<span id="displayInvoiceSubtotal"></span></strong></p>
+            <p><strong>Tax: $<span id="displayInvoiceTax"></span></strong></p>
+            <p><strong>Discount: -$<span id="displayInvoiceDiscount"></span></strong></p>
+            <p><strong>Total: $<span id="displayInvoiceTotal"></span></strong></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const addItemBtn = document.getElementById('addItem');
+        const itemsTableBody = document.getElementById('itemsTableBody');
+        const invoiceSubtotal = document.getElementById('invoiceSubtotal');
+        const invoiceTax = document.getElementById('invoiceTax');
+        const invoiceDiscount = document.getElementById('invoiceDiscount');
+        const invoiceTotal = document.getElementById('invoiceTotal');
+        const generateInvoiceBtn = document.getElementById('generateInvoice');
+        const invoiceDisplay = document.getElementById('invoiceDisplay');
+        const downloadPdfBtn = document.getElementById('downloadPdf');
+
+        const displayClientName = document.getElementById('displayClientName');
+        const displayClientEmail = document.getElementById('displayClientEmail');
+        const displayInvoiceDate = document.getElementById('displayInvoiceDate');
+        const displayItemsTableBody = document.getElementById('displayItemsTableBody');
+        const displayInvoiceSubtotal = document.getElementById('displayInvoiceSubtotal');
+        const displayInvoiceTax = document.getElementById('displayInvoiceTax');
+        const displayInvoiceDiscount = document.getElementById('displayInvoiceDiscount');
+        const displayInvoiceTotal = document.getElementById('displayInvoiceTotal');
+
+        let items = [];
+        let subtotal = 0;
+        let taxAmount = 0;
+        let discountAmount = 0;
+        let totalAmount = 0;
+
+        const clientNameInput = document.getElementById('clientName');
+        const clientEmailInput = document.getElementById('clientEmail');
+        const invoiceDateInput = document.getElementById('invoiceDate');
+
+        clientNameInput.addEventListener('input', resetInvoice);
+        clientEmailInput.addEventListener('input', resetInvoice);
+        invoiceDateInput.addEventListener('input', resetInvoice);
+
+        function resetInvoice() {
+            // Clear all items and reset the totals when starting a new invoice
+            items = [];
+            subtotal = 0;
+            taxAmount = 0;
+            discountAmount = 0;
+            totalAmount = 0;
+
+            // Clear the item table and totals display
+            itemsTableBody.innerHTML = '';
+            invoiceSubtotal.textContent = '0.00';
+            invoiceTax.textContent = '0.00';
+            invoiceDiscount.textContent = '0.00';
+            invoiceTotal.textContent = '0.00';
+
+            // Hide the invoice display
+            invoiceDisplay.style.display = 'none';
+        }
+
+        addItemBtn.addEventListener('click', function() {
+            const itemDescription = document.getElementById('itemDescription').value;
+            const itemQuantity = parseFloat(document.getElementById('itemQuantity').value);
+            const itemPrice = parseFloat(document.getElementById('itemPrice').value);
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
+
+            if (itemDescription && itemQuantity > 0 && itemPrice > 0) {
+                const itemTotal = itemQuantity * itemPrice;
+                subtotal += itemTotal;
+                taxAmount = subtotal * (taxRate / 100);
+                discountAmount = discount;
+                totalAmount = subtotal + taxAmount - discountAmount;
+
+                items.push({
+                    description: itemDescription,
+                    quantity: itemQuantity,
+                    price: itemPrice,
+                    total: itemTotal
+                });
+
+                updateInvoiceDisplay();
+            }
+        });
+
+        function updateInvoiceDisplay() {
+            // Clear the existing table rows
+            itemsTableBody.innerHTML = '';
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.description}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>$${item.total.toFixed(2)}</td>
+                `;
+                itemsTableBody.appendChild(row);
+            });
+
+            invoiceSubtotal.textContent = subtotal.toFixed(2);
+            invoiceTax.textContent = taxAmount.toFixed(2);
+            invoiceDiscount.textContent = discountAmount.toFixed(2);
+            invoiceTotal.textContent = totalAmount.toFixed(2);
+        }
+
+        generateInvoiceBtn.addEventListener('click', function() {
+            displayClientName.textContent = clientNameInput.value;
+            displayClientEmail.textContent = clientEmailInput.value;
+            displayInvoiceDate.textContent = invoiceDateInput.value;
+
+            displayItemsTableBody.innerHTML = '';
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.description}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>$${item.total.toFixed(2)}</td>
+                `;
+                displayItemsTableBody.appendChild(row);
+            });
+
+            displayInvoiceSubtotal.textContent = subtotal.toFixed(2);
+            displayInvoiceTax.textContent = taxAmount.toFixed(2);
+            displayInvoiceDiscount.textContent = discountAmount.toFixed(2);
+            displayInvoiceTotal.textContent = totalAmount.toFixed(2);
+
+            invoiceDisplay.style.display = 'block';
+        });
+
+        downloadPdfBtn.addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text('Invoice', 20, 20);
+            doc.text(`Client Name: ${clientNameInput.value}`, 20, 30);
+            doc.text(`Client Email: ${clientEmailInput.value}`, 20, 40);
+            doc.text(`Date: ${invoiceDateInput.value}`, 20, 50);
+
+            let startY = 70;
+            items.forEach(item => {
+                doc.text(`${item.description} - ${item.quantity} x $${item.price.toFixed(2)} = $${item.total.toFixed(2)}`, 20, startY);
+                startY += 10;
+            });
+
+            doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, startY + 10);
+            doc.text(`Tax: $${taxAmount.toFixed(2)}`, 20, startY + 20);
+            doc.text(`Discount: -$${discountAmount.toFixed(2)}`, 20, startY + 30);
+            doc.text(`Total: $${totalAmount.toFixed(2)}`, 20, startY + 40);
+
+            doc.save('invoice.pdf');
+        });
+    </script>
+</body>
+</html>
